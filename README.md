@@ -1,11 +1,11 @@
-Install Libraries:
+<h1>Install Libraries:</h1>h1>
 
 Go to Sketch > Include Library > Manage Libraries and install:
 FastLED for LED control.
 Adafruit Unified Sensor (optional but helpful for debugging).
 Wire (built-in for I2C communication).
 Upload the Code:
-
+<p></p>
 Connect the Wemos D1 Mini to your computer via USB.
 Select the appropriate COM Port under Tools > Port.
 Choose Wemos D1 Mini as the board under Tools > Board.
@@ -32,3 +32,14 @@ Flickering LEDs:
 
 Add a 330Ω resistor in series with the data line.
 Place a 1000µF capacitor across the LED strip’s power lines.
+
+
+Connecting the Switch
+Use a simple SPST (Single Pole Single Throw) switch.
+Connect one terminal of the switch to GND.
+Connect the other terminal to D2 (GPIO 4) on the Wemos D1 Mini.
+Note: The code uses an internal pull-up resistor on D2, so no external resistor is needed.
+
+How It Works
+When the switch is closed (connected to GND), digitalRead(SWITCH_PIN) returns LOW, and the program runs the LED blinking logic.
+When the switch is open (disconnected from GND), digitalRead(SWITCH_PIN) returns HIGH, and the LEDs are turned off, and the program does nothing.
