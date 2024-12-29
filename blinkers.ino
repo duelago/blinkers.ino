@@ -12,6 +12,9 @@ CRGB leds[NUM_LEDS];
 // ADXL345 I2C address
 #define ADXL345_ADDRESS 0x53
 
+// On/Off switch pin
+#define SWITCH_PIN D2
+
 void setupADXL345() {
   Wire.begin();
   // Set ADXL345 to measure mode
@@ -33,6 +36,8 @@ void readADXL345(int &x, int &y, int &z) {
 }
 
 void setup() {
+  pinMode(SWITCH_PIN, INPUT_PULLUP); // Configure the switch pin with an internal pull-up resistor
+
   FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(BRIGHTNESS);
   FastLED.clear();
@@ -75,13 +80,20 @@ void blinkRight() {
 }
 
 void loop() {
-  int x, y, z;
-  readADXL345(x, y, z);
+  // Check if the switch is ON
+  if (digitalRead(SWITCH_PIN) == LOW) { // LOW means the switch is ON
+    int x, y, z;
+    readADXL345(x, y, z);
 
-  // Determine lean direction
-  if (x > 200) { // Adjust threshold based on sensitivity
-    blinkLeft();
-  } else if (x < -200) {
-    blinkRight();
+    // Determine lean direction
+    if (x > 200) { // Adjust threshold based on sensitivity
+      blinkLeft();
+    } else if (x < -200) {
+      blinkRight();
+    }
+  } else {
+    // Turn off LEDs when the switch is OFF
+    FastLED.clear();
+    FastLED.show();
   }
 }
