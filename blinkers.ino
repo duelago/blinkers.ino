@@ -12,9 +12,6 @@ CRGB leds[NUM_LEDS];
 // ADXL345 I2C address
 #define ADXL345_ADDRESS 0x53
 
-// On/Off switch pin
-#define SWITCH_PIN D2
-
 // Adjusted G-force threshold for more accurate turn detection
 #define TURN_THRESHOLD 1.8   // G-force to register a turn
 #define DEBOUNCE_TIME 500    // Milliseconds to avoid false turns
@@ -57,8 +54,6 @@ void readADXL345(float &x, float &y, float &z) {
 void setup() {
   Serial.begin(115200);
   Serial.println("Initializing...");
-
-  pinMode(SWITCH_PIN, INPUT_PULLUP);
 
   FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(BRIGHTNESS);
@@ -109,26 +104,21 @@ void blinkRight() {
 }
 
 void loop() {
-  if (digitalRead(SWITCH_PIN) == HIGH) {
-    float x, y, z;
-    readADXL345(x, y, z);
+  float x, y, z;
+  readADXL345(x, y, z);
 
-    unsigned long currentTime = millis();
+  unsigned long currentTime = millis();
 
-    // Adjusted turn detection based on sensor orientation
-    if (y > TURN_THRESHOLD && (currentTime - lastTurnTime) > DEBOUNCE_TIME) {
-      Serial.println("Left turn detected!");
-      blinkLeft();
-      lastTurnTime = currentTime;
-    }
+  // Adjusted turn detection based on sensor orientation
+  if (y > TURN_THRESHOLD && (currentTime - lastTurnTime) > DEBOUNCE_TIME) {
+    Serial.println("Left turn detected!");
+    blinkLeft();
+    lastTurnTime = currentTime;
+  }
 
-    if (y < -TURN_THRESHOLD && (currentTime - lastTurnTime) > DEBOUNCE_TIME) {
-      Serial.println("Right turn detected!");
-      blinkRight();
-      lastTurnTime = currentTime;
-    }
-  } else {
-    FastLED.clear();
-    FastLED.show();
+  if (y < -TURN_THRESHOLD && (currentTime - lastTurnTime) > DEBOUNCE_TIME) {
+    Serial.println("Right turn detected!");
+    blinkRight();
+    lastTurnTime = currentTime;
   }
 }
