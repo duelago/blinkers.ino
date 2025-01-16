@@ -1,8 +1,8 @@
 #include <Wire.h>
 #include <FastLED.h>
 
-#define LED_PIN D1
-#define NUM_LEDS 6
+#define LED_PIN D6
+#define NUM_LEDS 8
 #define BRIGHTNESS 255
 #define ORANGE CRGB(255, 165, 0)
 #define BLINK_DELAY 300 // Milliseconds between blinks
@@ -15,11 +15,11 @@ CRGB leds[NUM_LEDS];
 // On/Off switch pin
 #define SWITCH_PIN D2
 
-// Svängtrösklar (justera efter behov)
-#define TURN_THRESHOLD 1.5   // G-kraft för att registrera en sväng
-#define DEBOUNCE_TIME 500    // Millisekunder för att undvika falska svängar
+// Adjusted G-force threshold for more accurate turn detection
+#define TURN_THRESHOLD 1.8   // G-force to register a turn
+#define DEBOUNCE_TIME 500    // Milliseconds to avoid false turns
 
-// Tidtagning för debounce
+// Timing for debounce
 unsigned long lastTurnTime = 0;
 
 void setupADXL345() {
@@ -40,22 +40,44 @@ void readADXL345(float &x, float &y, float &z) {
   int16_t rawY = Wire.read() | (Wire.read() << 8);
   int16_t rawZ = Wire.read() | (Wire.read() << 8);
 
-  // Omvandla rådata till g-värden
+  // Convert raw data to G values
   x = rawX * 0.0039;  // 3.9 mg/LSB
   y = rawY * 0.0039;
   z = rawZ * 0.0039;
+
+  Serial.print("X: ");
+  Serial.print(x, 2);
+  Serial.print("g, Y: ");
+  Serial.print(y, 2);
+  Serial.print("g, Z: ");
+  Serial.print(z, 2);
+  Serial.println("g");
 }
 
 void setup() {
-  pinMode(SWITCH_PIN, INPUT_PULLUP);  // Configure the switch pin with an internal pull-up resistor
+  Serial.begin(115200);
+  Serial.println("Initializing...");
+
+  pinMode(SWITCH_PIN, INPUT_PULLUP);
 
   FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(BRIGHTNESS);
   FastLED.clear();
   FastLED.show();
 
+  for (int i = 0; i < 2; i++) {
+    fill_solid(leds, NUM_LEDS, ORANGE);
+    FastLED.show();
+    delay(BLINK_DELAY);
+    FastLED.clear();
+    FastLED.show();
+    delay(BLINK_DELAY);
+  }
+
   Wire.begin();
   setupADXL345();
+
+  Serial.println("ADXL345 initialized.");
 }
 
 void blinkLeft() {
@@ -63,12 +85,10 @@ void blinkLeft() {
     leds[0] = ORANGE;
     leds[1] = ORANGE;
     leds[2] = ORANGE;
+    leds[3] = ORANGE;
     FastLED.show();
     delay(BLINK_DELAY);
-
-    leds[0] = CRGB::Black;
-    leds[1] = CRGB::Black;
-    leds[2] = CRGB::Black;
+    FastLED.clear();
     FastLED.show();
     delay(BLINK_DELAY);
   }
@@ -76,42 +96,38 @@ void blinkLeft() {
 
 void blinkRight() {
   for (int i = 0; i < 4; i++) {
-    leds[3] = ORANGE;
     leds[4] = ORANGE;
     leds[5] = ORANGE;
+    leds[6] = ORANGE;
+    leds[7] = ORANGE;
     FastLED.show();
     delay(BLINK_DELAY);
-
-    leds[3] = CRGB::Black;
-    leds[4] = CRGB::Black;
-    leds[5] = CRGB::Black;
+    FastLED.clear();
     FastLED.show();
     delay(BLINK_DELAY);
   }
 }
 
 void loop() {
-  // Check if the switch is ON
-  if (digitalRead(SWITCH_PIN) == LOW) {  // LOW means the switch is ON
+  if (digitalRead(SWITCH_PIN) == HIGH) {
     float x, y, z;
     readADXL345(x, y, z);
 
-    // Get current time
     unsigned long currentTime = millis();
 
-    // Check for left turn
-    if (x > TURN_THRESHOLD && (currentTime - lastTurnTime) > DEBOUNCE_TIME) {
+    // Adjusted turn detection based on sensor orientation
+    if (y > TURN_THRESHOLD && (currentTime - lastTurnTime) > DEBOUNCE_TIME) {
+      Serial.println("Left turn detected!");
       blinkLeft();
       lastTurnTime = currentTime;
     }
 
-    // Check for right turn
-    if (x < -TURN_THRESHOLD && (currentTime - lastTurnTime) > DEBOUNCE_TIME) {
+    if (y < -TURN_THRESHOLD && (currentTime - lastTurnTime) > DEBOUNCE_TIME) {
+      Serial.println("Right turn detected!");
       blinkRight();
       lastTurnTime = currentTime;
     }
   } else {
-    // Turn off LEDs when the switch is OFF
     FastLED.clear();
     FastLED.show();
   }
