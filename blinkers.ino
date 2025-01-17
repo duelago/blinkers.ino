@@ -76,7 +76,7 @@ void setup() {
 }
 
 void blinkLeft() {
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 3; i++) {  // Reduced blinks to 3
     leds[0] = ORANGE;
     leds[1] = ORANGE;
     leds[2] = ORANGE;
@@ -90,7 +90,7 @@ void blinkLeft() {
 }
 
 void blinkRight() {
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 3; i++) {  // Reduced blinks to 3
     leds[4] = ORANGE;
     leds[5] = ORANGE;
     leds[6] = ORANGE;
@@ -109,14 +109,14 @@ void loop() {
 
   unsigned long currentTime = millis();
 
-  // Adjusted turn detection based on sensor orientation
-  if (y > TURN_THRESHOLD && (currentTime - lastTurnTime) > DEBOUNCE_TIME) {
+  // Adjusted turn detection based on Z-axis (yaw)
+  if (z > TURN_THRESHOLD && (currentTime - lastTurnTime) > DEBOUNCE_TIME) {
     Serial.println("Left turn detected!");
     blinkLeft();
     lastTurnTime = currentTime;
   }
 
-  if (y < -TURN_THRESHOLD && (currentTime - lastTurnTime) > DEBOUNCE_TIME) {
+  if (z < -TURN_THRESHOLD && (currentTime - lastTurnTime) > DEBOUNCE_TIME) {
     Serial.println("Right turn detected!");
     blinkRight();
     lastTurnTime = currentTime;
