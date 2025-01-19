@@ -13,7 +13,7 @@ CRGB leds[NUM_LEDS];
 #define ADXL345_ADDRESS 0x53
 
 // Adjusted G-force threshold for more accurate turn detection
-#define TURN_THRESHOLD 1.8   // G-force to register a turn
+#define TURN_THRESHOLD 1.4   // G-force to register a turn
 #define DEBOUNCE_TIME 500    // Milliseconds to avoid false turns
 
 // Timing for debounce
@@ -109,14 +109,14 @@ void loop() {
 
   unsigned long currentTime = millis();
 
-  // Adjusted turn detection based on Z-axis (yaw)
-  if (z > TURN_THRESHOLD && (currentTime - lastTurnTime) > DEBOUNCE_TIME) {
+  // Adjusted turn detection based on X-axis
+  if (x > TURN_THRESHOLD && (currentTime - lastTurnTime) > DEBOUNCE_TIME) {
     Serial.println("Left turn detected!");
     blinkLeft();
     lastTurnTime = currentTime;
   }
 
-  if (z < -TURN_THRESHOLD && (currentTime - lastTurnTime) > DEBOUNCE_TIME) {
+  if (x < -TURN_THRESHOLD && (currentTime - lastTurnTime) > DEBOUNCE_TIME) {
     Serial.println("Right turn detected!");
     blinkRight();
     lastTurnTime = currentTime;
