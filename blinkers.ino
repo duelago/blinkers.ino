@@ -109,14 +109,14 @@ void loop() {
 
   unsigned long currentTime = millis();
 
-  // Adjusted turn detection based on X-axis
-  if (x > TURN_THRESHOLD && (currentTime - lastTurnTime) > DEBOUNCE_TIME) {
+  // Adjusted turn detection based on Z-axis
+  if (z > TURN_THRESHOLD && (currentTime - lastTurnTime) > DEBOUNCE_TIME) {
     Serial.println("Left turn detected!");
     blinkLeft();
     lastTurnTime = currentTime;
   }
 
-  if (x < -TURN_THRESHOLD && (currentTime - lastTurnTime) > DEBOUNCE_TIME) {
+  if (z < -TURN_THRESHOLD && (currentTime - lastTurnTime) > DEBOUNCE_TIME) {
     Serial.println("Right turn detected!");
     blinkRight();
     lastTurnTime = currentTime;
