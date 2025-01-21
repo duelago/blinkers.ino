@@ -12,11 +12,12 @@ CRGB leds[NUM_LEDS];
 // ADXL345 I2C address
 #define ADXL345_ADDRESS 0x53
 
-#define TURN_THRESHOLD 1.6   // G-force to register a turn
-#define DEBOUNCE_TIME 500    // Milliseconds to avoid false turns
+#define G_FORCE_THRESHOLD 1.8  // G-force to register a blink
+#define DEBOUNCE_TIME 500      // Milliseconds to avoid false triggers
 
-// Timing for debounce
-unsigned long lastTurnTime = 0;
+// Timing and direction control
+unsigned long lastTriggerTime = 0;
+bool blinkLeftNext = true; // Alternates direction
 
 void setupADXL345() {
   Wire.begin();
@@ -75,6 +76,7 @@ void setup() {
 }
 
 void blinkLeft() {
+  Serial.println("Blinking left...");
   for (int i = 0; i < 3; i++) {
     fill_solid(leds, NUM_LEDS / 2, ORANGE);
     FastLED.show();
@@ -86,6 +88,7 @@ void blinkLeft() {
 }
 
 void blinkRight() {
+  Serial.println("Blinking right...");
   for (int i = 0; i < 3; i++) {
     fill_solid(&leds[NUM_LEDS / 2], NUM_LEDS / 2, ORANGE);
     FastLED.show();
@@ -102,16 +105,15 @@ void loop() {
 
   unsigned long currentTime = millis();
 
-  // Determine the axis with the maximum G-force, excluding Z-axis
-  float maxG = max(abs(x), abs(y));
-  if ((maxG > TURN_THRESHOLD) && (currentTime - lastTurnTime) > DEBOUNCE_TIME) {
-    if (x > 0 || y > 0) {
-      Serial.println("Positive G-force on X or Y detected: Blinking left");
+  // Check for G-force exceeding threshold in any direction
+  float maxG = max({abs(x), abs(y), abs(z)});
+  if ((maxG > G_FORCE_THRESHOLD) && (currentTime - lastTriggerTime > DEBOUNCE_TIME)) {
+    if (blinkLeftNext) {
       blinkLeft();
     } else {
-      Serial.println("Negative G-force on X or Y detected: Blinking right");
       blinkRight();
     }
-    lastTurnTime = currentTime;
+    blinkLeftNext = !blinkLeftNext; // Alternate direction
+    lastTriggerTime = currentTime;
   }
 }
